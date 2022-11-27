@@ -6,17 +6,19 @@
 
   const onMessage = (message) => {
     if (message.command === "f1together") {
-      console.log("Assuming control.");
-      if (message.host === true) {
-        connect_host(message.host_pass);
-      } else {
-        connect();
-      }
       if (window.browser === undefined) {
         let el = document.createElement("script");
         el.innerHTML =
           "window.fonplayer = document.getElementById('main-embeddedPlayer').player";
         document.head.appendChild(el);
+        console.log("inserted player elem to chrome");
+      }
+
+      console.log("Assuming control.");
+      if (message.host === true) {
+        connect_host(message.host_pass);
+      } else {
+        connect();
       }
     }
   };
@@ -24,7 +26,7 @@
   if (window.browser === undefined) {
     chrome.runtime.onMessage.addListener(onMessage);
   } else {
-    window.browser.runtime.onMessage.addListener(onMessage);
+    browser.runtime.onMessage.addListener(onMessage);
   }
 })();
 
@@ -38,11 +40,17 @@ const try_json = (json) => {
 
 const connect_host = (pass) => {
   const vid = document.querySelector("video");
-  const socket = new WebSocket("ws://127.0.0.1:3337/");
+  const socket = new WebSocket("wss://watoge.ort.dev/");
 
   socket.onopen = (conn) => {
     console.log("Connected.");
     socket.send(JSON.stringify({ kind: "logon", pw: pass }));
+  };
+
+  socket.onclose = (t) => {
+    if (t.code === 1006) {
+      connect_host(pass);
+    }
   };
 
   const changePlay = () => {
@@ -89,11 +97,17 @@ const seek = (duration) => {
 
 const connect = () => {
   const vid = document.querySelector("video");
-  const socket = new WebSocket("ws://127.0.0.1:3337/");
+  const socket = new WebSocket("wss://watoge.ort.dev/");
 
   socket.onopen = (conn) => {
     console.log("Connected!");
     socket.send(JSON.stringify({ kind: "logon" }));
+  };
+
+  socket.onclose = (t) => {
+    if (t.code === 1006) {
+      connect();
+    }
   };
 
   socket.onmessage = async (msg) => {
@@ -122,9 +136,9 @@ const connect = () => {
         vid.currentTime < parsed.duration - 5
       ) {
         if (vid.parentNode.wrappedJSObject !== undefined) {
-          vid.parentNode.wrappedJSObject.player.seek(parsed.duration);
+          vid.parentNode.wrappedJSObject.player.seek(parsed.duration + 1);
         } else {
-          seek(parsed.duration);
+          seek(parsed.duration + 1);
         }
       }
       if (parsed.playback !== vid.paused ? "pause" : "play") {
@@ -140,9 +154,9 @@ const connect = () => {
     }
     if (parsed.kind === "seek") {
       if (vid.parentNode.wrappedJSObject !== undefined) {
-        vid.parentNode.wrappedJSObject.player.seek(parsed.seek);
+        vid.parentNode.wrappedJSObject.player.seek(parsed.seek + 1);
       } else {
-        vid.parentNode.player.seek(parsed.seek);
+        vid.parentNode.player.seek(parsed.seek + 1);
       }
     }
   };
