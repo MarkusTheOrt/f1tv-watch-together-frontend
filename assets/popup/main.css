@@ -1,3 +1,22 @@
-h1 {
+body {
   font-family: sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+h1 {
+  font-size: 26px;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.row {
+  display: flex;
+  margin-bottom: 7px;
+  margin-top: 10px;
+}
+
+input[type="password"] {
+  margin-bottom: 10px;
+  height: 20px;
 }

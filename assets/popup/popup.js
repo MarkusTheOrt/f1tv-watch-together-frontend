@@ -1,7 +1,25 @@
-const btn = document.querySelector("#connect");
+const btn = document.getElementById("connect");
+const check = document.getElementById("host");
+const pwfield = document.getElementById("hostpw");
+
 btn.onclick = async () => {
-  let tabs = await browser.tabs.query({ active: true, currentWindow: true });
-  browser.tabs.sendMessage(tabs[0].id, {
-    command: "f1together",
-  });
+  if (window.browser === undefined) {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      chrome.tabs.sendMessage(tabs[0].id, {
+        command: "f1together",
+        host: check.checked,
+        host_pass: pwfield.value,
+      });
+    });
+  } else {
+    let tabs = await window.browser.tabs.query({
+      active: true,
+      currentWindow: true,
+    });
+    browser.tabs.sendMessage(tabs[0].id, {
+      command: "f1together",
+      host: check.checked,
+      host_pass: pwfield.value,
+    });
+  }
 };
